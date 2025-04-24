@@ -17,7 +17,7 @@ void keypad_init(void){
 	GPIO_setInput(GPIOE,11);
 	
 	//Pull up for PE9-PE11
-	GPIO_setPullResistor(GPIOE
+	GPIO_setPullResistor(GPIOE,11);
 	
 	
 	
