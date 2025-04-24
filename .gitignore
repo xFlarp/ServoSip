@@ -1,0 +1,42 @@
+# Build artifacts
+*.axf
+*.hex
+*.bin
+*.elf
+*.map
+*.lst
+*.sct
+*.crf
+*.d
+*.o
+*.tra
+*.log
+*.tmp
+*.bak
+
+# Keil output folders
+Objects/
+Listings/
+DebugConfig/
+
+# Keil user workspace files (you may keep .uvprojx and .uvoptx for sharing project)
+*.uvgui.*
+*.uvguix.*
+
+# STM32CubeMX
+*.ioc
+*.log
+*.backup
+*.ioc_backup
+*.ioc_save
+
+# IDE metadata
+.vscode/
+.idea/
+
+# OS/mac generated files
+.DS_Store
+Thumbs.db
+
+# Git backup
+*.orig
