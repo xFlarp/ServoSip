@@ -2,6 +2,8 @@
 #include "gpio.h"
 #include <stdio.h>
 #include "ultra.h"
+#include "pump.h"
+#include "temp.h"
 
 extern float distance;
 char buffer[16];
