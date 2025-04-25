@@ -8,31 +8,43 @@
 
 extern float distance;
 char buffer[16];
+int cursor_pos = 0;
+int dist_counter = 0;
 
 int main (void){
 	LCD_port_init();
 	LCD_init();
-	LCD_printString("ServoSip");
+	//LCD_printString("ServoSip");
 	LCD_placeCursor(2);
-	LCD_printString("Ben & Sam");
+	//LCD_printString("Ben & Sam");
 	pwm_init();
 	incap_init();
 	keypad_init();
-	delay(1000);
+	//delay(1000);
 	
 	
 	while(1){
 		distancecalc();
-		char key = keypad_scan();
-		LCD_clearDisplay();
-		LCD_printString("Dist: ");
-		LCD_printFloat(distance,2);
-		LCD_printString(" in");
-		if (key != '\0'){
-	   LCD_placeCursor(2);
-	  LCD_printChar(key);
+		
+ if (dist_counter == 0){
+        distancecalc();
+        LCD_placeCursor(1);
+        LCD_printString("Dist: ");
+        LCD_printFloat(distance,2);
+        LCD_printString(" in   ");
+ }
+		 char key = keypad_scan();
+		 if (key != '\0'){
+	   LCD_placeCursorRC(2, cursor_pos); 
+	   LCD_printChar(key);
+		 cursor_pos++;
 	}
-		delay(500);
+		   dist_counter++;
+    if (dist_counter >= 10) { 
+        dist_counter = 0;
+    }
+		
+		delay(50);
 		
 		
 	}

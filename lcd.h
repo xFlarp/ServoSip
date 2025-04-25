@@ -23,6 +23,7 @@
 void LCD_port_init(void);
 void LCD_init(void);
 void LCD_placeCursor(uint32_t lineno);
+void LCD_placeCursorRC(uint8_t row, uint8_t col);
 void LCD_sendData(unsigned char data);
 void LCD_sendInstr(unsigned char Instruction);
 void LCD_clearDisplay(void);
