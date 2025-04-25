@@ -32,7 +32,7 @@ char keypad_scan(void){
 	for (int row = 0; row<4; row++){
 		//all rows high
 		GPIOE->ODR |= (0xF <<12); //PE12-15 high
-		//pull llow
+		//pull low
 		GPIOE->ODR &= ~(1<<(15-row)); //one by one
 		
 		for (int col = 0; col<3; col++){
