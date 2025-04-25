@@ -4,6 +4,7 @@
 #include "ultra.h"
 #include "pump.h"
 #include "temp.h"
+#include "keypad.h"
 
 extern float distance;
 char buffer[16];
@@ -16,16 +17,23 @@ int main (void){
 	LCD_printString("Ben & Sam");
 	pwm_init();
 	incap_init();
+	keypad_init();
 	delay(1000);
 	
 	
 	while(1){
 		distancecalc();
+		char key = keypad_scan();
 		LCD_clearDisplay();
 		LCD_printString("Dist: ");
 		LCD_printFloat(distance,2);
 		LCD_printString(" in");
-		delay(2000);
+		if (key != '\0'){
+	   LCD_placeCursor(2);
+	  LCD_printChar(key);
+	}
+		delay(500);
+		
 		
 	}
 }

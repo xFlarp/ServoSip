@@ -19,7 +19,29 @@ void keypad_init(void){
 	GPIO_setPullResistor(GPIOE,11,1);
 	GPIO_setPullResistor(GPIOE,10,1);
 	GPIO_setPullResistor(GPIOE,9,1);
+}
+
+char keypad_scan(void){
+	const char keys [4][3] = {
+		{'1', '2', '3'},
+		{'4', '5', '6'},
+		{'7', '8', '9'},
+		{'*', '0', '#'}
+	};
 	
-	
-	
+	for (int row = 0; row<4; row++){
+		//all rows high
+		GPIOE->ODR |= (0xF <<12); //PE12-15 high
+		//pull llow
+		GPIOE->ODR &= ~(1<<(15-row)); //one by one
+		
+		for (int col = 0; col<3; col++){
+			int pin = 11-col; //pe11, pe10, pe9
+			if (!(GPIOE->IDR & (1<<pin))){
+				while (!(GPIOE->IDR & (1<<pin))); //debounce
+				return keys[row][col];
+			}
+		}
+	}
+	return '\0'; //no key pressed if no key pressed
 }
