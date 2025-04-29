@@ -168,7 +168,7 @@
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>key</ItemText>
+          <ItemText>currentState</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

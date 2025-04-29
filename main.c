@@ -7,14 +7,11 @@
 #include "temp.h"
 #include "keypad.h"
 
-enum STATE { INTRO, INPUT_HEIGHT, SELECT, FILL, DONE, NEXT }; 
+enum STATE { INTRO, INPUT_HEIGHT, SELECT, FILL_AUTO, FILL_MANUAL, DONE, RESETTER }; 
 enum STATE currentState = INTRO;
 
 extern float distance;
 char buffer[16];
-
-int cursor_pos = 0;
-int dist_counter = 0;
 
 char heightBuffer[5];
 int heightIndex = 0;
@@ -22,6 +19,8 @@ float cupHeight = 0;
 
 extern volatile char lastKeyPressed;
 
+int heightDisplayed = 0;
+int selectDisplayed = 0;
 
 
 int main (void){
@@ -34,21 +33,30 @@ int main (void){
 	LCD_clearDisplay();
 	LCD_printString("ServoSip");
 	delay(2000);
-	LCD_clearDisplay();
-
 	currentState = INPUT_HEIGHT;
-	LCD_placeCursor(1);
-	LCD_printString("Set Height: ");
-	LCD_placeCursorRC(2,0);
+
 	
 	
 while (1) {
-    if (lastKeyPressed != '\0') {
-        char key = lastKeyPressed;
-        lastKeyPressed = '\0';
+	/**  disable interrupt for testing
+	
+        //char key = lastKeyPressed;
+        //lastKeyPressed = '\0';
+	
+	**/
+				char key = keypad_scan(); //temp polling
 
         switch (currentState) {
+					
             case INPUT_HEIGHT:
+							if (!heightDisplayed){
+								LCD_clearDisplay();
+								LCD_placeCursor(1);
+								LCD_printString("Set Height: ");
+								LCD_placeCursor(2);
+								heightDisplayed = 1;
+							}
+								
                 if (key >= '0' && key <= '9') {
                     if (heightIndex == 0) {
                         heightBuffer[heightIndex++] = key;
@@ -78,29 +86,71 @@ while (1) {
                     LCD_printFloat(cupHeight,2);
                     LCD_printString(" in");
                     delay(2000);
-                    LCD_clearDisplay();
-                    
                     currentState = SELECT;
+                }
+								break;
+								
+
+            case SELECT:
+							if (!selectDisplayed){
+										LCD_clearDisplay();
                     LCD_printString("Select Mode:");
                     LCD_placeCursorRC(2, 0);
                     LCD_printString("1.Auto 2.Manual");
-                }
+										selectDisplayed=1;
+							}
+										if (key == '1'){
+											LCD_clearDisplay();
+											LCD_printString("Begin Auto");
+											delay(1000);
+											currentState = FILL_AUTO;
+											selectDisplayed = 0;
+										}
+										else if (key == '2'){
+											LCD_clearDisplay();
+											LCD_printString("Begin Manual");
+											delay(1000);
+											currentState =  FILL_MANUAL;
+											selectDisplayed = 0;
+										}
+										else if (key == '*'){
+											currentState = RESETTER;
+										}
+										else if (key == '#'){
+											currentState = RESETTER;
+										}
+										else if (key != '\0'){
+											LCD_clearDisplay();
+											LCD_printString("Invalid");
+											delay(1000);
+											selectDisplayed=0;
+										}
                 break;
 
-            case SELECT:
-                
+            case FILL_AUTO:
                 break;
-
-            case FILL:
-                break;
+						
+						case FILL_MANUAL:
+							break;
 
             case DONE:
                 break;
+						
+						case RESETTER:
+							LCD_clearDisplay();
+						  LCD_printString("Resetting");
+							delay(500);
+							LCD_clearDisplay();
+							cupHeight = 0;
+							heightIndex = 0;
+							selectDisplayed = 0;
+							heightDisplayed = 0;
+							currentState = INPUT_HEIGHT;
+							break;
 
             default:
                 break;
         }
-    }
 
     delay(5);
 }
