@@ -13,6 +13,7 @@
 *.log
 *.tmp
 *.bak
+*.scvd
 
 # Keil output folders
 Objects/

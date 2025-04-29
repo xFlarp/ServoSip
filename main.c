@@ -20,6 +20,8 @@ char heightBuffer[5];
 int heightIndex = 0;
 float cupHeight = 0;
 
+extern volatile char lastKeyPressed;
+
 
 
 int main (void){
@@ -40,73 +42,66 @@ int main (void){
 	LCD_placeCursorRC(2,0);
 	
 	
-	while(1){
-		char key = keypad_scan();
+while (1) {
+    if (lastKeyPressed != '\0') {
+        char key = lastKeyPressed;
+        lastKeyPressed = '\0';
 
-		
- switch (currentState) {
+        switch (currentState) {
             case INPUT_HEIGHT:
-                if (key != '\0') {
-                    if (key >= '0' && key <= '9') {
-                        if (heightIndex == 0) {
-                            //first digit
-                            heightBuffer[heightIndex++] = key;
-                            heightBuffer[heightIndex] = '\0';
-                            LCD_printChar(key);
+                if (key >= '0' && key <= '9') {
+                    if (heightIndex == 0) {
+                        heightBuffer[heightIndex++] = key;
+                        heightBuffer[heightIndex] = '\0';
+                        LCD_printChar(key);
 
-                            //auto insert decimal
-                            heightBuffer[heightIndex++] = '.';
-                            heightBuffer[heightIndex] = '\0';
-                            LCD_printChar('.');
-                        }
-                        else if (heightIndex >= 2 && heightIndex < 4) {
-                            //two digits allowed
-                            heightBuffer[heightIndex++] = key;
-                            heightBuffer[heightIndex] = '\0';
-                            LCD_printChar(key);
-                        }
+                        heightBuffer[heightIndex++] = '.';
+                        heightBuffer[heightIndex] = '\0';
+                        LCD_printChar('.');
                     }
-                    else if (key == '#') {
-                        //done key
-                        cupHeight = atof(heightBuffer);
-
-                        if (cupHeight > 9.99f) {
-                            cupHeight = 9.99f;
-                        }
-
-                        LCD_clearDisplay();
-                        LCD_printString("Height set");
-												LCD_placeCursor(2);
-												LCD_printFloat(cupHeight,2);
-												LCD_printString(" in");
-                        delay(2000);
-                        LCD_clearDisplay();
-                        
-                        //move screen
-                        currentState = SELECT;
-                        LCD_printString("Select Mode:");
-                        LCD_placeCursorRC(2, 0);
-                        LCD_printString("1.Auto 2.Manual");
+                    else if (heightIndex >= 2 && heightIndex < 4) {
+                        heightBuffer[heightIndex++] = key;
+                        heightBuffer[heightIndex] = '\0';
+                        LCD_printChar(key);
                     }
+                }
+                else if (key == '#') {
+                    cupHeight = atof(heightBuffer);
+
+                    if (cupHeight > 9.99f) {
+                        cupHeight = 9.99f;
+                    }
+
+                    LCD_clearDisplay();
+                    LCD_printString("Height set");
+                    LCD_placeCursor(2);
+                    LCD_printFloat(cupHeight,2);
+                    LCD_printString(" in");
+                    delay(2000);
+                    LCD_clearDisplay();
+                    
+                    currentState = SELECT;
+                    LCD_printString("Select Mode:");
+                    LCD_placeCursorRC(2, 0);
+                    LCD_printString("1.Auto 2.Manual");
                 }
                 break;
 
             case SELECT:
-              
+                
                 break;
 
             case FILL:
-             
                 break;
 
             case DONE:
-     
                 break;
 
             default:
                 break;
         }
-
-        delay(50); 
     }
+
+    delay(5);
+}
 }
