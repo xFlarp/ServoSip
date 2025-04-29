@@ -29,6 +29,7 @@ int main (void){
 	pwm_init();
 	incap_init();
 	keypad_init();
+	pump_init();
 	
 	LCD_clearDisplay();
 	LCD_printString("ServoSip");
@@ -38,6 +39,7 @@ int main (void){
 	
 	
 while (1) {
+	pump_run();
 	/**  disable interrupt for testing
 	
         //char key = lastKeyPressed;
