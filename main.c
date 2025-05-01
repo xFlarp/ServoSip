@@ -11,6 +11,7 @@ enum STATE { INTRO, INPUT_HEIGHT, SELECT, FILL_AUTO, FILL_MANUAL, DONE, RESETTER
 enum STATE currentState = INTRO;
 
 extern float distance;
+extern uint8_t captureDone;
 char buffer[16];
 
 char heightBuffer[5];
@@ -34,7 +35,9 @@ int main (void){
 	LCD_clearDisplay();
 	LCD_printString("ServoSip");
 	delay(2000);
-	currentState = INPUT_HEIGHT;
+	//currentState = INPUT_HEIGHT
+	cupHeight = 8;
+	currentState = FILL_AUTO;
 
 	
 	
@@ -132,37 +135,35 @@ while (1) {
                 break;
 									}
 
-            case FILL_AUTO:
-						{
-							float avg = getAverageDistance(5);
-							float target = cupHeight - 0.5f;
-							float filled = cupHeight - avg;
-							
-							if (filled<0) filled = 0;
-							
-							LCD_clearDisplay();
-							//LCD_printString("Filling...");
-							//LCD_placeCursor(2);
-							//sprintf(buffer, "%.1f in of %.1f in", filled, cupHeight);
-							//LCD_printString(buffer);
-							
-							if (avg > target)	{
-								pump_run();
-								} else {
-									LCD_placeCursorRC(1, 0);
-sprintf(buffer, "Dist: %.2f in", avg);
-LCD_printString(buffer);
+						case FILL_AUTO:
+{
+    trigger_ultrasonic();
+    delay(50);  // wait for echo
 
-LCD_placeCursorRC(2, 0);
-sprintf(buffer, "Target: %.2f in", target);
-LCD_printString(buffer);
-									//currentState = DONE;
-									//LCD_clearDisplay();
-									//LCD_printString("Filling Complete");
-									//delay(1000);
-								}
-                break;
-						}
+    float measured = distancecalc(); // update if captured
+    float target = cupHeight - 0.5f;
+    float filled = cupHeight - measured;
+    if (filled < 0) filled = 0;
+
+    LCD_clearDisplay();
+    LCD_placeCursorRC(1, 0);
+    sprintf(buffer, "Dist: %.2f", measured);
+    LCD_printString(buffer);
+
+    LCD_placeCursorRC(2, 0);
+    sprintf(buffer, "Done:%d Fill:%.2f", captureDone, filled);
+    LCD_printString(buffer);
+
+    if (measured > target) {
+        pump_run();
+    } else {
+        TIM4->CCR4 = 0;
+    }
+
+    break;
+}
+
+
 						
 						case FILL_MANUAL:
 						{
