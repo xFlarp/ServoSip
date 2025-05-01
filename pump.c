@@ -1,5 +1,6 @@
 #include "pump.h"
 #include "gpio.h"
+#include "lcd.h"
 
 #define DIRA 13
 #define DIRB 12
@@ -41,13 +42,13 @@ void pump_init(void) {
     TIM4->CCER &= ~(1u << 13);
 
     // Set the auto-reload value (ARR) for the PWM frequency (max count value)
-    TIM4->ARR = 100; // Defines PWM period (duty cycle resolution)
+    TIM4->ARR = 999; // Defines PWM period (duty cycle resolution)
 
     // Set prescaler to achieve desired PWM frequency
-    TIM4->PSC = (16000000 / 1000) - 1; // Prescaler for 1 kHz PWM
+    TIM4->PSC = 15; // Prescaler for 1 kHz PWM
 
-    // Initialize duty cycle to 0% (CCR4 register)
-    TIM4->CCR4 = 0;
+    // Initialize duty cycle (CCR4 register)
+    TIM4->CCR4 = (80 * TIM4->ARR) / 100;
 
     // Enable ARR buffering (Auto-reload preload) for smooth PWM updates
     TIM4->CR1 |= (1u << 7); // ARPE (Auto-reload preload enable)
@@ -73,5 +74,7 @@ void pump_run(void){
 //	if (direction == 2){
 		GPIOD->ODR |= (1u<<DIRA);
 		GPIOD->ODR &= ~(1u<<DIRB);
+	
+		TIM4->CCR4 = (80 * TIM4->ARR) / 100;
 	//}
 }

@@ -2,6 +2,7 @@
 #include "gpio.h"
 #include "lcd.h"
 
+
 volatile char lastKeyPressed = '\0';
 
 static const char keys[4][3] = {

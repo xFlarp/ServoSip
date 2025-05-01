@@ -39,7 +39,6 @@ int main (void){
 	
 	
 while (1) {
-	pump_run();
 	/**  disable interrupt for testing
 	
         //char key = lastKeyPressed;
@@ -51,6 +50,7 @@ while (1) {
         switch (currentState) {
 					
             case INPUT_HEIGHT:
+						{
 							if (!heightDisplayed){
 								LCD_clearDisplay();
 								LCD_placeCursor(1);
@@ -91,9 +91,11 @@ while (1) {
                     currentState = SELECT;
                 }
 								break;
+							}
 								
 
             case SELECT:
+						{
 							if (!selectDisplayed){
 										LCD_clearDisplay();
                     LCD_printString("Select Mode:");
@@ -128,17 +130,53 @@ while (1) {
 											selectDisplayed=0;
 										}
                 break;
+									}
 
             case FILL_AUTO:
+						{
+							float avg = getAverageDistance(5);
+							float target = cupHeight - 0.5f;
+							float filled = cupHeight - avg;
+							
+							if (filled<0) filled = 0;
+							
+							LCD_clearDisplay();
+							//LCD_printString("Filling...");
+							//LCD_placeCursor(2);
+							//sprintf(buffer, "%.1f in of %.1f in", filled, cupHeight);
+							//LCD_printString(buffer);
+							
+							if (avg > target)	{
+								pump_run();
+								} else {
+									LCD_placeCursorRC(1, 0);
+sprintf(buffer, "Dist: %.2f in", avg);
+LCD_printString(buffer);
+
+LCD_placeCursorRC(2, 0);
+sprintf(buffer, "Target: %.2f in", target);
+LCD_printString(buffer);
+									//currentState = DONE;
+									//LCD_clearDisplay();
+									//LCD_printString("Filling Complete");
+									//delay(1000);
+								}
                 break;
+						}
 						
 						case FILL_MANUAL:
+						{
+							pump_run();
 							break;
+						}
 
             case DONE:
+						{
                 break;
+						}
 						
 						case RESETTER:
+						{
 							LCD_clearDisplay();
 						  LCD_printString("Resetting");
 							delay(500);
@@ -149,6 +187,7 @@ while (1) {
 							heightDisplayed = 0;
 							currentState = INPUT_HEIGHT;
 							break;
+						}
 
             default:
                 break;

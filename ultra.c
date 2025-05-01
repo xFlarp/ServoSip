@@ -1,5 +1,6 @@
 #include "ultra.h"
 #include "gpio.h"
+#include "lcd.h"
 
 volatile uint32_t risingtime =0;
 volatile uint32_t fallingtime =0;
@@ -70,9 +71,26 @@ float distancecalc(void){
 		distance = ((width/148.0)-15);
 		return  distance;
 	}
-		
-		
-		
-		
-	
 }
+
+void trigger_ultrasonic(void) {
+    // Set Trigger pin high
+    GPIO_setPin(GPIOB, 4); // PB4 = Trigger
+
+    delay(1); // 10–20 microseconds would be ideal, but this works for ms delay
+
+    // Set Trigger pin low
+    GPIO_clearPin(GPIOB, 4);
+}
+
+
+float getAverageDistance(int samples) {
+    float sum = 0;
+    for (int i = 0; i < samples; i++) {
+        trigger_ultrasonic();
+        delay(50); 
+        sum += distance;
+    }
+    return sum / samples;
+}
+
