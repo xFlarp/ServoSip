@@ -19,9 +19,9 @@ void pump_init(void) {
 		//sets to push pull mode
 		GPIOD->OTYPER &= ~(1u<<DIRA);
 		GPIOD->OTYPER &= ~(1u<<DIRB);
-		/*set speed 
-		GPIOD->OSPEEDR &= ~(3u<<2*DIRA);
-		GPIOD->OSPEEDR &= ~(3u<<2*DIRB);*/
+	//set speed
+			GPIOD->OSPEEDR |= (3u << (2 * DIRA));
+			GPIOD->OSPEEDR |= (3u << (2 * DIRB));
 
     // Configure Pin 15 alternate function to TIM4 Channel 4 (AF2)
     GPIOD->AFR[1] &= ~(0xF << 28); // Clear AF selection bits for Pin 15
@@ -48,7 +48,7 @@ void pump_init(void) {
     TIM4->PSC = 15; // Prescaler for 1 kHz PWM
 
     // Initialize duty cycle (CCR4 register)
-    TIM4->CCR4 = (80 * TIM4->ARR) / 100;
+    TIM4->CCR4 = TIM4->ARR;
 
     // Enable ARR buffering (Auto-reload preload) for smooth PWM updates
     TIM4->CR1 |= (1u << 7); // ARPE (Auto-reload preload enable)
@@ -67,14 +67,13 @@ void pump_init(void) {
 }
 
 void pump_run(void){
-	//if (direction == 1){
-		//GPIOD->ODR &= ~(1u<<DIRA);
-		//GPIOD->ODR |= (1u<<DIRB);
-	//}
-//	if (direction == 2){
 		GPIOD->ODR |= (1u<<DIRA);
 		GPIOD->ODR &= ~(1u<<DIRB);
-	
-		TIM4->CCR4 = (80 * TIM4->ARR) / 100;
-	//}
+		TIM4->CCR4 = TIM4->ARR;
+}
+
+void pump_stop(void){
+		TIM4->CCR4 = 0;
+		GPIOD->ODR &= ~(1u << DIRA);
+    GPIOD->ODR &= ~(1u << DIRB);
 }

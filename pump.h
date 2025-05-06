@@ -2,3 +2,4 @@
 
 void pump_init(void);
 void pump_run(void);
+void pump_stop(void);

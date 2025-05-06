@@ -37,7 +37,7 @@ int main (void){
 	delay(2000);
 	//currentState = INPUT_HEIGHT
 	cupHeight = 8;
-	currentState = FILL_AUTO;
+	currentState = FILL_MANUAL;
 
 	
 	
@@ -167,9 +167,17 @@ while (1) {
 						
 						case FILL_MANUAL:
 						{
+							LCD_clearDisplay();
+							LCD_printString("pumping");
 							pump_run();
+							delay(6000);
+							pump_stop();
+							LCD_clearDisplay();
+							LCD_printString("done");
+							currentState = DONE;
 							break;
 						}
+
 
             case DONE:
 						{
