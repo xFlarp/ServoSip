@@ -67,9 +67,9 @@ void pump_init(void) {
 }
 
 void pump_run(void){
+		TIM4->CCR4 = TIM4->ARR;
 		GPIOD->ODR |= (1u<<DIRA);
 		GPIOD->ODR &= ~(1u<<DIRB);
-		TIM4->CCR4 = TIM4->ARR;
 }
 
 void pump_stop(void){

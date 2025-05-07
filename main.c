@@ -7,10 +7,9 @@
 #include "temp.h"
 #include "keypad.h"
 
-enum STATE { INTRO, INPUT_HEIGHT, SELECT, FILL_AUTO, FILL_MANUAL, DONE, RESETTER }; 
+enum STATE { INTRO, INPUT_HEIGHT, SELECT, FILL_AUTO, FILL_MANUAL, DONE, RESETTER, test, tester }; 
 enum STATE currentState = INTRO;
 
-extern float distance;
 extern uint8_t captureDone;
 char buffer[16];
 
@@ -22,6 +21,9 @@ extern volatile char lastKeyPressed;
 
 int heightDisplayed = 0;
 int selectDisplayed = 0;
+
+int testStep = 0;
+
 
 
 int main (void){
@@ -35,9 +37,9 @@ int main (void){
 	LCD_clearDisplay();
 	LCD_printString("ServoSip");
 	delay(2000);
-	//currentState = INPUT_HEIGHT
-	cupHeight = 8;
-	currentState = FILL_MANUAL;
+	//currentState = INPUT_HEIGHT;
+	//cupHeight = 8;
+	currentState = test;
 
 	
 	
@@ -163,20 +165,127 @@ while (1) {
     break;
 }
 
-
-						
+		
 						case FILL_MANUAL:
-						{
-							LCD_clearDisplay();
-							LCD_printString("pumping");
-							pump_run();
-							delay(6000);
-							pump_stop();
-							LCD_clearDisplay();
-							LCD_printString("done");
-							currentState = DONE;
-							break;
-						}
+{
+    static char fillBuffer[5];
+    static int fillIndex = 0;
+    static float targetFill = 0;
+    static uint8_t promptDisplayed = 0;
+
+    if (!promptDisplayed) {
+        LCD_clearDisplay();
+        LCD_printString("Fill how many?");
+        LCD_placeCursorRC(2, 0);
+        fillIndex = 0;
+        promptDisplayed = 1;
+    }
+
+    if (promptDisplayed == 1) {
+        if (key >= '0' && key <= '9') {
+            if (fillIndex == 0) {
+                fillBuffer[fillIndex++] = key;
+                fillBuffer[fillIndex] = '\0';
+                LCD_printChar(key);
+
+                fillBuffer[fillIndex++] = '.';
+                fillBuffer[fillIndex] = '\0';
+                LCD_printChar('.');
+            }
+            else if (fillIndex >= 2 && fillIndex < 4) {
+                fillBuffer[fillIndex++] = key;
+                fillBuffer[fillIndex] = '\0';
+                LCD_printChar(key);
+            }
+
+            // Auto-submit when 3 digits are entered
+            if (fillIndex == 4) {
+                float requestedFill = atof(fillBuffer);
+                if (requestedFill > cupHeight) {
+                    LCD_clearDisplay();
+                    LCD_printString("Too much!");
+                    delay(1500);
+                    promptDisplayed = 0;
+                } else {
+                    targetFill = requestedFill;
+                    promptDisplayed = 2;
+                    LCD_clearDisplay();
+                    LCD_printString("Filling...");
+                    delay(1000);
+                }
+            }
+        }
+        else if (key == '*' || key == '#') {
+            LCD_clearDisplay();
+            LCD_printString("Cancelled");
+            delay(1000);
+            currentState = SELECT;
+            promptDisplayed = 0;
+        }
+    }
+
+    // Filling loop
+    if (promptDisplayed == 2) {
+        if (key == '*' || key == '#') {
+            pump_stop();
+            LCD_clearDisplay();
+            LCD_printString("Cancelled");
+            delay(1000);
+            currentState = DONE;
+            promptDisplayed = 0;
+            break;
+        }
+
+        trigger_ultrasonic();
+        delay(50);
+        float measured = distancecalc();
+        float filled = cupHeight - measured;
+        if (filled < 0) filled = 0;
+
+        LCD_clearDisplay();
+        LCD_placeCursorRC(1, 0);
+        sprintf(buffer, "Filled: %.2f", filled);
+        LCD_printString(buffer);
+
+        LCD_placeCursorRC(2, 0);
+        sprintf(buffer, "of %.2f in", targetFill);
+        LCD_printString(buffer);
+
+        if (filled < targetFill - 0.5f) {
+            pump_run();
+        } else {
+            pump_stop();
+            LCD_clearDisplay();
+            LCD_printString("Done!");
+            delay(2000);
+            currentState = DONE;
+            promptDisplayed = 0;
+        }
+    }
+
+    break;
+}
+
+						case test:
+{
+    LCD_clearDisplay();
+    LCD_printString("Dist: Reading...");
+    delay(1000);
+
+    for (int i = 0; i < 16; i++) { // ~5 seconds @ 300ms each
+        float measured = distancecalc_avg(30);
+        LCD_clearDisplay();
+        LCD_placeCursorRC(1, 0);
+        sprintf(buffer, "Dist: %.2f in", measured);
+        LCD_printString(buffer);
+        delay(300);
+    }
+
+    currentState = tester;
+    break;
+}
+
+
 
 
             case DONE:
@@ -197,6 +306,22 @@ while (1) {
 							currentState = INPUT_HEIGHT;
 							break;
 						}
+						
+						case tester:
+{
+    LCD_clearDisplay();
+    LCD_printString("Pumping...");
+    pump_run();
+    delay(1000);
+    pump_stop();
+
+    LCD_clearDisplay();
+    LCD_printString("Switching back");
+    delay(1000);
+
+    currentState = test;
+    break;
+}
 
             default:
                 break;

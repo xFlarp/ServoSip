@@ -93,6 +93,29 @@ float distancecalc(void) {
     return distance; // always return the last known value
 }
 
+float distancecalc_avg(int samples) {
+    float sum = 0.0f;
+    int count = 0;
+
+    for (int i = 0; i < samples; i++) {
+        trigger_ultrasonic();
+        delay(3);
+
+        float reading = distancecalc();
+        if (reading > 0.0f && reading < 400.0f) {  // ignore bad readings
+            sum += reading;
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        return -1.0f;  // error
+    }
+
+    return sum / count;
+}
+
+
 
 
 
