@@ -158,22 +158,32 @@
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>heightBuffer,0x0A</ItemText>
+          <ItemText>lastKeyPressed</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>lastKeyPressed</ItemText>
+          <ItemText>currentState</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>currentState</ItemText>
+          <ItemText>measured</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
+          <ItemText>heightIndex</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
           <ItemText>measured</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>distancecalc,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
