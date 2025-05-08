@@ -9,7 +9,7 @@
 
 void timer2_init(void);
 
-enum STATE { INPUT_HEIGHT, SELECT, FILL_AUTO, FILL_MANUAL, DONE, RESETTER, test, tester }; 
+enum STATE { INPUT_HEIGHT, SELECT, FILL_AUTO, FILL_MANUAL, DONE, RESETTER }; 
 enum STATE currentState = INPUT_HEIGHT;
 
 extern uint8_t captureDone;
@@ -23,6 +23,7 @@ extern volatile char lastKeyPressed;
 
 int heightDisplayed = 0;
 int selectDisplayed = 0;
+
 
 
 
@@ -40,7 +41,6 @@ int main (void){
 	LCD_printString("ServoSip");
 	delay(2000);
 	currentState = INPUT_HEIGHT;
-	//currentState = test;
 
 	
 	
@@ -154,9 +154,9 @@ while (1) {
 						case FILL_AUTO:
 {
     trigger_ultrasonic();
-    delay(50);  // wait for echo
+    delay(5);
 
-    float measured = distancecalc(); // update if captured
+    float measured = distancecalc_avg(15); // update if captured
     float target = cupHeight - 0.5f;
     float filled = cupHeight - measured;
     if (filled < 0) filled = 0;
@@ -180,16 +180,18 @@ while (1) {
 }
 
 		
-case FILL_MANUAL:
+						case FILL_MANUAL:
 {
     static char fillBuffer[5] = {0};   // Stores "x.x"
     static int fillIndex = 0;
     static float targetFill = 0;
     static uint8_t promptDisplayed = 0;
+    static float emptyDistance = 0;
+    static uint8_t pumping = 0;
 
     if (!promptDisplayed) {
         LCD_clearDisplay();
-        LCD_printString("Fill how many?");
+				LCD_printString("Inches to Fill:");
         LCD_placeCursorRC(2, 0);
         fillIndex = 0;
         fillBuffer[0] = '\0';
@@ -203,49 +205,77 @@ case FILL_MANUAL:
             fillBuffer[fillIndex++] = '.'; // insert decimal
             LCD_printChar(key);
             LCD_printChar('.');
+						lastKeyPressed = '\0';
         }
         else if (fillIndex == 2) {
             fillBuffer[fillIndex++] = key;
             fillBuffer[fillIndex] = '\0';
             LCD_printChar(key);
+						lastKeyPressed = '\0';
 
             float requestedFill = atof(fillBuffer);
             if (requestedFill > cupHeight || requestedFill < 0.1f) {
                 LCD_clearDisplay();
                 LCD_printString("Invalid amount");
-                delay(1500);
+                delay(1000);
                 promptDisplayed = 0; // reset input
             } else {
                 targetFill = requestedFill;
+							
                 promptDisplayed = 2;
                 LCD_clearDisplay();
                 LCD_printString("Measuring...");
-                delay(1000);
+                emptyDistance = distancecalc_avg(20);  // Get baseline distance
+							  delay(500);
+
+                if (emptyDistance <= 0 || emptyDistance > 20.0f) {
+                    LCD_clearDisplay();
+                    LCD_printString("Measure Failed");
+                    delay(1000);
+                    promptDisplayed = 0;
+                    break;
+                }
             }
         }
     }
-    else if ((key == '*' || key == '#') && promptDisplayed == 1) {
-        LCD_clearDisplay();
-        LCD_printString("Cancelled");
-        delay(1000);
-        currentState = SELECT;
-        promptDisplayed = 0;
-    }
+else if (key == '*') {
+    LCD_clearDisplay();
+    LCD_printString("Back");
+    delay(1000);
+    promptDisplayed = 0;
+		targetFill = 0;
+		emptyDistance = 0;
+		pump_stop();
+		pumping=0;
+    fillIndex = 0;
+		lastKeyPressed = '\0';
+}
+else if (key == '#') {
+    LCD_clearDisplay();
+    promptDisplayed = 0;
+    fillIndex = 0;
+    pumping = 0;
+		pump_stop();
+		currentState = RESETTER;
+}
 
-    // Measurement loop
+
+    // Measurement and pumping loop
     if (promptDisplayed == 2) {
         if (key == '*' || key == '#') {
+            pump_stop();
             LCD_clearDisplay();
             LCD_printString("Cancelled");
             delay(1000);
             currentState = DONE;
             promptDisplayed = 0;
+            pumping = 0;
             break;
         }
 
-        trigger_ultrasonic();
-        delay(50);
-        float measured = distancecalc();
+        float currentDistance = distancecalc_avg(20);
+        float poured = emptyDistance - currentDistance;
+        if (poured < 0) poured = 0;
 
         LCD_clearDisplay();
         LCD_placeCursorRC(1, 0);
@@ -253,8 +283,23 @@ case FILL_MANUAL:
         LCD_printString(buffer);
 
         LCD_placeCursorRC(2, 0);
-        sprintf(buffer, "Measured: %.2f", measured);
+        sprintf(buffer, "Poured: %.2f", poured);
         LCD_printString(buffer);
+
+        if (poured < targetFill) {
+            pump_run();
+            pumping = 1;
+        } else {
+            if (pumping) {
+                pump_stop();
+                pumping = 0;
+                LCD_clearDisplay();
+                LCD_printString("Fill Done!");
+                delay(1000);
+                currentState = DONE;
+                promptDisplayed = 0;
+            }
+        }
 
         delay(200); // update rate
     }
@@ -262,34 +307,27 @@ case FILL_MANUAL:
     break;
 }
 
-
-
-						case test:
+           case DONE:
 {
-    LCD_clearDisplay();
-    LCD_printString("Dist: Reading...");
-    delay(1000);
+    float temp = 0;
 
-    for (int i = 0; i < 16; i++) { // ~5 seconds @ 300ms each
-        float measured = distancecalc_avg(30);
-        LCD_clearDisplay();
-        LCD_placeCursorRC(1, 0);
-        sprintf(buffer, "Dist: %.2f in", measured);
-        LCD_printString(buffer);
-        delay(300);
+    LCD_clearDisplay();
+    LCD_printString("Enjoy Your Drink!");
+    LCD_placeCursorRC(2, 0);
+		LCD_printString("Temp: ");
+    LCD_printFloat(temp, 1);
+    LCD_printString(" F");
+
+    delay(1000); // update every second
+
+    if (lastKeyPressed != '\0') {
+        lastKeyPressed = '\0';
+        currentState = SELECT;
     }
 
-    currentState = tester;
     break;
 }
 
-
-
-
-            case DONE:
-						{
-                break;
-						}
 						
 						case RESETTER:
 						{
@@ -299,29 +337,16 @@ case FILL_MANUAL:
 							LCD_clearDisplay();
 							cupHeight = 0;
 							heightIndex = 0;
+							lastKeyPressed = '\0';
 							selectDisplayed = 0;
 							heightDisplayed = 0;
-							currentState = INPUT_HEIGHT;
+							currentState = SELECT;
 							break;
 						}
 						
-						case tester:
-{
-    LCD_clearDisplay();
-    LCD_printString("Pumping...");
-    pump_run();
-    delay(1000);
-    pump_stop();
-
-    LCD_clearDisplay();
-    LCD_printString("Switching back");
-    delay(1000);
-
-    currentState = test;
-    break;
-}
 
             default:
+							currentState=SELECT;
                 break;
         }
 

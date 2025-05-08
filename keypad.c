@@ -6,7 +6,7 @@ volatile char lastKeyPressed = '\0';
 
 static const char keys[4][3] = {
     {'3', '2', '1'},
-    {'6', '5', '7'},
+    {'6', '5', '4'},
     {'9', '8', '7'},
     {'#', '0', '*'}
 };

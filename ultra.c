@@ -99,7 +99,7 @@ float distancecalc_avg(int samples) {
 
     for (int i = 0; i < samples; i++) {
         trigger_ultrasonic();
-        delay(3);
+        delay(5);
 
         float reading = distancecalc();
         if (reading > 0.0f && reading < 400.0f) {  // ignore bad readings
