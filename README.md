@@ -6,6 +6,4 @@ This project, developed for ENGR 331, is an automated drink pourer system powere
 - Automatic refill when drink level is low
 - Manual input of refill volume via keypad
 - LCD feedback and status display
-- LED indicators for cup level
-- UART-based serial logging to PC
 - Powered via 5V DC adapter
