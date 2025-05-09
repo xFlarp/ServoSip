@@ -128,6 +128,14 @@ void delay(uint32_t ms){
 		}
 	}
 
+	
+	void LCD_placeCursorRC(uint8_t row, uint8_t col){
+    uint8_t addr = (row == 1) ? 0x00 : 0x40;
+    addr += col;
+    LCD_sendInstr(0x80 | addr);
+}
+
+
 /*******************************
  * LCD_sendData()
  * Inputs: unsigned character data (8-bit)

@@ -13,11 +13,14 @@
 *.log
 *.tmp
 *.bak
+*.scvd
+*.cardi
 
 # Keil output folders
 Objects/
 Listings/
 DebugConfig/
+RTE/
 
 # Keil user workspace files (you may keep .uvprojx and .uvoptx for sharing project)
 *.uvgui.*

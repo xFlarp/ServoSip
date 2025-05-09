@@ -4,3 +4,5 @@ void pwm_init(void);
 void incap_init(void);
 void TIM3_IRQHandler(void);
 float distancecalc(void);
+void trigger_ultrasonic(void);
+float distancecalc_avg(int);

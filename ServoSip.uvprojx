@@ -429,6 +429,26 @@
               <FileType>5</FileType>
               <FilePath>.\keypad.h</FilePath>
             </File>
+            <File>
+              <FileName>pump.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\pump.c</FilePath>
+            </File>
+            <File>
+              <FileName>pump.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\pump.h</FilePath>
+            </File>
+            <File>
+              <FileName>temp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\temp.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\temp.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

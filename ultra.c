@@ -1,10 +1,14 @@
 #include "ultra.h"
 #include "gpio.h"
+#include "lcd.h"
 
-volatile uint32_t risingtime =0;
-volatile uint32_t fallingtime =0;
-volatile uint32_t capture =0;
+volatile uint32_t risingtime = 0;
+volatile uint32_t fallingtime = 0;
+volatile uint8_t captureDone = 0;
 volatile float distance = 0;
+
+volatile uint8_t expectingRisingEdge = 1;
+
 
 void pwm_init(void){
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; //enable clock
@@ -50,29 +54,69 @@ void incap_init (void){
 }
 
 void TIM3_IRQHandler(void){
-	if (TIM3->SR & TIM_SR_CC2IF){ //if capture interrupt flag is set
-		if (GPIOB->IDR & (1<<5)){ //if PB5 is high then this is rising edge
-			risingtime = TIM3->CCR2; //capture timestamp
-			TIM3->CCER &= ~TIM_CCER_CC2P; //capture falling edge
-		} else{ //falling edge
-			fallingtime = TIM3->CCR2; //capture timestamp
-			TIM3->CCER |= TIM_CCER_CC2P; //capture rising edge next time
-			capture = 1; //signal capture complete
-		}
-		TIM3->SR &= ~TIM_SR_CC2IF; //clear interrupt flag
-	}
+    if (TIM3->SR & TIM_SR_CC2IF){
+        if (expectingRisingEdge) {
+            risingtime = TIM3->CCR2;
+            TIM3->CCER |= TIM_CCER_CC2P; // Next: falling
+            expectingRisingEdge = 0;
+        } else {
+            fallingtime = TIM3->CCR2;
+            TIM3->CCER &= ~TIM_CCER_CC2P; // Next: rising
+            captureDone = 1;
+            expectingRisingEdge = 1;
+        }
+        TIM3->SR &= ~TIM_SR_CC2IF;
+    }
 }
 
-float distancecalc(void){
-	if (capture){
-		capture=0;
-		float width = fallingtime-risingtime;
-		distance = ((width/148.0)-15);
-		return  distance;
-	}
-		
-		
-		
-		
-	
+
+void trigger_ultrasonic(void) {
+    GPIO_setPin(GPIOB, 4);  // PB4 high
+    delay(1);               // ~10–20 µs pulse
+    GPIO_clearPin(GPIOB, 4); // PB4 low
 }
+
+float distancecalc(void) {
+    if (captureDone) {
+        captureDone = 0;
+
+        uint32_t width;
+        if (fallingtime >= risingtime) {
+            width = fallingtime - risingtime;
+        } else {
+            width = (TIM3->ARR - risingtime + fallingtime + 1);
+        }
+
+        distance = (width / 148.0f);
+    }
+
+    return distance; // always return the last known value
+}
+
+float distancecalc_avg(int samples) {
+    float sum = 0.0f;
+    int count = 0;
+
+    for (int i = 0; i < samples; i++) {
+        trigger_ultrasonic();
+        delay(5);
+
+        float reading = distancecalc();
+        if (reading > 0.0f && reading < 400.0f) {  // ignore bad readings
+            sum += reading;
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        return -1.0f;  // error
+    }
+
+    return sum / count;
+}
+
+
+
+
+
+
