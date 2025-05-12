@@ -24,6 +24,13 @@ extern volatile char lastKeyPressed;
 int heightDisplayed = 0;
 int selectDisplayed = 0;
 
+static char fillBuffer[5] = {0};
+static int fillIndex = 0;
+static float targetFill = 0;
+static uint8_t promptDisplayed = 0;
+static float emptyDistance = 0;
+static uint8_t pumping = 0;
+
 
 
 
@@ -125,14 +132,23 @@ while (1) {
 											selectDisplayed = 0;
 											lastKeyPressed = '\0';
 										}
-										else if (key == '2'){
-											LCD_clearDisplay();
-											LCD_printString("Begin Manual");
-											delay(1000);
-											currentState =  FILL_MANUAL;
-											selectDisplayed = 0;
-											lastKeyPressed = '\0';
-										}
+										else if (key == '2') {
+    LCD_clearDisplay();
+    LCD_printString("Begin Manual");
+    delay(1000);
+
+    fillIndex = 0;
+    fillBuffer[0] = '\0';
+    targetFill = 0;
+    emptyDistance = 0;
+    pumping = 0;
+    promptDisplayed = 0;
+
+    currentState = FILL_MANUAL;
+    selectDisplayed = 0;
+    lastKeyPressed = '\0';
+}
+
 										else if (key == '*'){
 											currentState = RESETTER;
 											lastKeyPressed = '\0';
@@ -309,7 +325,7 @@ else if (key == '#') {
 
            case DONE:
 {
-    float temp = 0;
+    float temp = TEMP();
 
     LCD_clearDisplay();
     LCD_printString("Enjoy Your Drink!");

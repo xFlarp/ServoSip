@@ -161,8 +161,10 @@ float temp_conversion(int temp_reading){
 	int temp;
 	int * input_temp = &temp_reading;
 	memcpy(&temp, input_temp, sizeof(int));
-	float temperture = 0.0625 *(float) temp;
-	return temperture;
+	float celsius = 0.0625 *(float) temp;
+	// convert to Fahrenheit
+  float fahrenheit = celsius * 9.0f / 5.0f + 32.0f;
+	return fahrenheit;
 	
 }
 

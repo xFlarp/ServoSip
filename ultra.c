@@ -72,7 +72,7 @@ void TIM3_IRQHandler(void){
 
 void trigger_ultrasonic(void) {
     GPIO_setPin(GPIOB, 4);  // PB4 high
-    delay(1);               // ~10–20 µs pulse
+    delay(1);               // ~10?20 ?s pulse
     GPIO_clearPin(GPIOB, 4); // PB4 low
 }
 
@@ -114,7 +114,6 @@ float distancecalc_avg(int samples) {
 
     return sum / count;
 }
-
 
 
 
