@@ -192,7 +192,7 @@ int main (void) {
                     LCD_placeCursorRC(2, 0);
                     sprintf(buffer, "P:%.1f T:%.1f", poured, emptyDistance - FULL_CUP_DISTANCE);
                     LCD_printString(buffer);
-                    delay(75);
+                    delay(200);
 
                     if ((currentDistance < FULL_CUP_DISTANCE + 0.1f) && (!(currentDistance > 12.0f))) {
                         pump_stop();
@@ -201,12 +201,10 @@ int main (void) {
                         lastKeyPressed = '\0';
                         currentState = DONE;
                         delay(400);
-                        break;
                     }
                     else {
                         pump_run();
                     }
-										break;
                 }
 
                 break;
@@ -248,12 +246,23 @@ int main (void) {
                             }
 
                             targetFill = requested;
-                            LCD_clearDisplay();
-                            LCD_printString("Measuring...");
-                            delay(500);
-                            emptyDistance = distancecalc_avg(35);
-                            promptStage = 2;
-                            break;
+														LCD_clearDisplay();
+														LCD_printString("Measuring...");
+														delay(500);
+														emptyDistance = distancecalc_avg(35);
+
+														float projectedDistance = emptyDistance - targetFill;
+															if (projectedDistance < FULL_CUP_DISTANCE) {
+																	LCD_clearDisplay();
+																	LCD_printString("Overflow Risk!");
+																	delay(1500);
+																	promptStage = 0;
+																	break;
+															}
+
+														promptStage = 2;
+														break;
+
                         }
                     }
 
@@ -290,7 +299,7 @@ int main (void) {
                     LCD_placeCursorRC(2, 0);
                     sprintf(buffer, "P:%.1f T:%.1f", poured, targetFill);
                     LCD_printString(buffer);
-                    delay(75);
+                    delay(200);
 
                     if (poured + 0.1f < targetFill) {
                         pump_run();
