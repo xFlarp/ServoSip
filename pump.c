@@ -42,8 +42,9 @@ void pump_init(void) {
     TIM4->CCER &= ~(1u << 13);
 
     // Set the auto-reload value (ARR) for the PWM frequency (max count value)
-    TIM4->ARR = 999; // Defines PWM period (duty cycle resolution)
-
+    //TIM4->ARR = 999; // Defines PWM period (duty cycle resolution)
+		TIM4->ARR = 299;
+	
     // Set prescaler to achieve desired PWM frequency
     TIM4->PSC = 15; // Prescaler for 1 kHz PWM
 
